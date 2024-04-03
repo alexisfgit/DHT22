@@ -3,6 +3,7 @@
 #include "ESPAsyncWebServer.h"
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
+#include <U8x8lib.h>
 
 //SSID et mot de passe du wifi
 const char* ssid = "SSID";
@@ -15,18 +16,24 @@ DHT dht(DHTPIN, DHTTYPE);
 
 //Création d'un objet AsyncWebServer sur le port 80
 AsyncWebServer server(80);
-
+U8X8_SSD1306_128X64_NONAME_SW_I2C u8x8(/* clock=*/ 22, /* data=*/ 21, /* reset=*/ U8X8_PIN_NONE); //OLED sans broche reset
 
 String readDHTTemperature() {
   float t = dht.readTemperature();
   
   //Vérifier si une lecture a échoué.
   if (isnan(t)) {    
-    Serial.println("Échec de la lecture du capteur DHT");
+    //Serial.println("Échec de la lecture du capteur DHT");
+    u8x8.drawUTF8(2,2,"Échec de");
+    u8x8.drawString(1,3, "la lecture du");
+    u8x8.drawString(2,4,"capteur DHT");
     return "--";
   }
   else {
-    Serial.println(t);
+    //Serial.println(t);
+    u8x8.setCursor(0,1);
+    u8x8.print(t);
+    u8x8.drawUTF8(8,1," °C");
     return String(t);
   }
 }
@@ -37,11 +44,17 @@ String readDHTHumidity() {
 
   //Vérifier si une lecture a échoué.
   if (isnan(h)) {
-    Serial.println("Échec de la lecture du capteur DHT");
+    //Serial.println("Échec de la lecture du capteur DHT");
+    u8x8.drawUTF8(2,2,"Échec de");
+    u8x8.drawString(1,3, "la lecture du");
+    u8x8.drawString(2,4,"capteur DHT");
     return "--";
   }
   else {
-    Serial.println(h);
+    //Serial.println(h);
+    u8x8.setCursor(0,4);
+    u8x8.print(h);
+    u8x8.drawUTF8(8,4," %");
     return String(h);
   }
 }
@@ -126,6 +139,10 @@ String processor(const String& var){
 
 
 void setup(){
+  u8x8.begin(); //Instancie l'affichage sur l'écran
+  u8x8.setFont(u8x8_font_courB18_2x3_f); //police d'écriture. _f : prend en charge + de caractères
+  delay(100); //temps d'initialisation de l'écran
+
   Serial.begin(115200);
   dht.begin();
   
